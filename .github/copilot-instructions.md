@@ -20,18 +20,24 @@ Semua code **HARUS** mengikuti prinsip SOLID:
 - Setiap class/function hanya memiliki satu tanggung jawab
 - Contoh: `AuthService` hanya handle authentication logic, bukan juga handle email sending
 
-```typescript
+```php
 // ❌ BAD
 class UserService {
-  register() { /* register + send email + log */ }
+  public function register() { 
+    // register + send email + log in one method
+  }
 }
 
 // ✅ GOOD
 class UserService {
-  register() { /* only registration logic */ }
+  public function register() { 
+    // only registration logic
+  }
 }
 class EmailService {
-  sendWelcomeEmail() { /* only email sending */ }
+  public function sendWelcomeEmail() { 
+    // only email sending
+  }
 }
 ```
 
@@ -39,18 +45,22 @@ class EmailService {
 - Open for extension, closed for modification
 - Gunakan interfaces dan abstract classes
 
-```typescript
+```php
 // ✅ GOOD
 interface PaymentGateway {
-  processPayment(amount: number): Promise<PaymentResult>;
+  public function processPayment(int $amount): PaymentResult;
 }
 
 class MidtransGateway implements PaymentGateway {
-  processPayment(amount: number) { /* Midtrans specific */ }
+  public function processPayment(int $amount): PaymentResult { 
+    // Midtrans specific implementation
+  }
 }
 
 class XenditGateway implements PaymentGateway {
-  processPayment(amount: number) { /* Xendit specific */ }
+  public function processPayment(int $amount): PaymentResult { 
+    // Xendit specific implementation
+  }
 }
 ```
 
@@ -62,24 +72,24 @@ class XenditGateway implements PaymentGateway {
 - Jangan paksa class implement interface yang tidak digunakan
 - Pecah interface besar menjadi interface-interface kecil yang spesifik
 
-```typescript
+```php
 // ❌ BAD
 interface User {
-  login();
-  logout();
-  generateReport(); // Admin only
-  manageInventory(); // Admin only
+  public function login();
+  public function logout();
+  public function generateReport(); // Admin only
+  public function manageInventory(); // Admin only
 }
 
 // ✅ GOOD
 interface Authenticatable {
-  login();
-  logout();
+  public function login();
+  public function logout();
 }
 
 interface AdminCapabilities {
-  generateReport();
-  manageInventory();
+  public function generateReport();
+  public function manageInventory();
 }
 ```
 
@@ -87,44 +97,57 @@ interface AdminCapabilities {
 - High-level modules tidak boleh depend on low-level modules
 - Keduanya harus depend on abstractions
 
-```typescript
-// ✅ GOOD
+```php
+// ✅ GOOD - Laravel Dependency Injection
 class OrderService {
-  constructor(
-    private paymentGateway: PaymentGateway, // abstraction
-    private notificationService: NotificationService // abstraction
+  public function __construct(
+    private PaymentGateway $paymentGateway,
+    private NotificationService $notificationService
   ) {}
+}
+
+// Atau dengan method injection
+class OrderController extends Controller {
+  public function store(StoreOrderRequest $request, OrderService $orderService) {
+    return $orderService->createOrder($request->validated());
+  }
 }
 ```
 
 ### **4. Folder Structure Rules**
 
-#### **Backend Structure**
+#### **Backend Structure (Laravel)**
 ```
-backend/src/
-├── modules/
-│   └── [feature]/
-│       ├── [feature].controller.ts   # HTTP request handling
-│       ├── [feature].service.ts      # Business logic
-│       ├── [feature].repository.ts   # Data access layer
-│       ├── [feature].routes.ts       # Route definitions
-│       ├── [feature].validation.ts   # Zod schemas
-│       ├── [feature].types.ts        # TypeScript interfaces
-│       └── [feature].test.ts         # Unit tests
-├── common/
-│   ├── middleware/
-│   ├── utils/
-│   ├── interfaces/
-│   └── constants/
-└── config/
+backend/app/
+├── Http/
+│   ├── Controllers/Api/
+│   │   └── [Feature]/
+│   │       └── [Feature]Controller.php   # HTTP request handling
+│   ├── Requests/
+│   │   └── [Feature]/
+│   │       └── Store[Feature]Request.php # Form validation
+│   ├── Resources/
+│   │   └── [Feature]Resource.php         # API Response transformer
+│   └── Middleware/
+│       └── CheckRole.php                 # Custom middleware
+├── Models/
+│   └── [Feature].php                     # Eloquent Model
+├── Services/
+│   └── [Feature]/
+│       └── [Feature]Service.php          # Business logic layer
+├── Repositories/ (Optional)
+│   └── [Feature]Repository.php           # Data access layer
+└── Traits/
+    └── [Feature]Trait.php                # Reusable methods
 ```
 
 **Penjelasan Layer:**
-- **Controller**: Hanya handle HTTP request/response, validation, dan panggil service
+- **Controller**: Hanya handle HTTP request/response dan panggil service/repository
+- **Request (Form Request)**: Validation rules dengan Laravel validation
 - **Service**: Business logic, orchestration, transaction management
-- **Repository**: Database queries, ORM operations, data mapping
-- **Validation**: Zod schemas untuk input validation
-- **Types**: TypeScript interfaces dan types
+- **Repository (Optional)**: Complex database queries, data mapping
+- **Resource**: Transform Eloquent models ke JSON response
+- **Model**: Eloquent ORM model dengan relationships
 
 #### **Frontend Structure**
 ```
@@ -148,20 +171,22 @@ frontend/src/
 
 ### **5. Code Quality Standards**
 
-#### **TypeScript**
-- **NO `any` type** - gunakan `unknown` jika tidak tahu type
-- Semua function harus memiliki explicit return type
-- Gunakan `strict: true` di tsconfig.json
+#### **PHP/Laravel**
+- **Type Hints**: Gunakan type hints untuk semua parameters dan return types (PHP 8.2+)
+- **Strict Types**: Declare `declare(strict_types=1);` di setiap file PHP
+- **No mixed types**: Hindari mixed type, gunakan union types jika perlu
 
-```typescript
+```php
 // ❌ BAD
-function getUser(id: any): any {
-  return db.user.findUnique({ where: { id } });
+function getUser($id) {
+  return User::find($id);
 }
 
 // ✅ GOOD
-async function getUser(id: string): Promise<User | null> {
-  return await db.user.findUnique({ where: { id } });
+declare(strict_types=1);
+
+public function getUser(string $id): ?User {
+  return User::find($id);
 }
 ```
 
@@ -170,46 +195,61 @@ async function getUser(id: string): Promise<User | null> {
 - Jangan expose internal error ke client
 - Log semua errors dengan context
 
-```typescript
-// ✅ GOOD
-class AppError extends Error {
-  constructor(
-    public statusCode: number,
-    public message: string,
-    public isOperational = true
+```php
+// ✅ GOOD - Laravel Custom Exception
+namespace App\Exceptions;
+
+use Exception;
+
+class AppException extends Exception {
+  public function __construct(
+    string $message,
+    int $statusCode = 400,
+    ?Exception $previous = null
   ) {
-    super(message);
+    parent::__construct($message, $statusCode, $previous);
+  }
+  
+  public function render($request) {
+    return response()->json([
+      'success' => false,
+      'message' => $this->getMessage()
+    ], $this->getCode());
   }
 }
 
-throw new AppError(404, 'User not found');
+// Usage
+throw new AppException('User not found', 404);
 ```
 
-#### **Naming Conventions**
-- **Files**: kebab-case (`user-service.ts`)
-- **Classes**: PascalCase (`UserService`)
-- **Functions/Variables**: camelCase (`getUserById`)
+#### **Naming Conventions (Laravel PSR-12)**
+- **Files**: PascalCase untuk classes (`UserService.php`), kebab-case untuk views
+- **Classes**: PascalCase (`UserService`, `MenuController`)
+- **Methods/Variables**: camelCase (`getUserById`, `$userName`)
 - **Constants**: UPPER_SNAKE_CASE (`MAX_RETRY_COUNT`)
-- **Interfaces**: PascalCase with 'I' prefix optional (`IUser` atau `User`)
-- **Types**: PascalCase (`UserRole`)
+- **Database Tables**: snake_case plural (`users`, `menu_items`, `order_items`)
+- **Model Properties**: snake_case (`$table`, `$fillable`)
+- **Routes**: kebab-case (`/api/menu-items`, `/api/user-profile`)
 
 #### **Comments & Documentation**
 - Gunakan JSDoc untuk public APIs
 - Comment HANYA untuk "why", bukan "what"
 - Code harus self-documenting
 
-```typescript
+```php
 /**
  * Validates and processes payment through Midtrans gateway
- * @param orderId - The unique order identifier
- * @param amount - Payment amount in IDR
- * @returns Payment transaction result
- * @throws {AppError} When payment validation fails
+ * 
+ * @param string $orderId The unique order identifier
+ * @param int $amount Payment amount in IDR
+ * @return PaymentResult Payment transaction result
+ * @throws AppException When payment validation fails
  */
-async function processPayment(orderId: string, amount: number): Promise<PaymentResult> {
+public function processPayment(string $orderId, int $amount): PaymentResult {
   // We use snap token instead of direct charge to support multiple payment methods
-  const snapToken = await midtrans.createSnapToken(orderId, amount);
-  return { snapToken };
+  $snapToken = $this->midtrans->createSnapToken($orderId, $amount);
+  
+  return new PaymentResult(['snapToken' => $snapToken]);
 }
 ```
 
@@ -290,28 +330,31 @@ describe('AuthService', () => {
 - Frontend: Code splitting dan lazy loading components
 - API response: Pagination untuk list endpoints (max 50 items per page)
 
-```typescript
-// ✅ GOOD - Pagination
-async function getOrders(page: number = 1, limit: number = 20) {
-  return await db.order.findMany({
-    skip: (page - 1) * limit,
-    take: limit,
-    orderBy: { createdAt: 'desc' }
-  });
+```php
+// ✅ GOOD - Laravel Pagination
+public function getOrders(int $perPage = 20): LengthAwarePaginator {
+  return Order::with(['items', 'user'])
+    ->latest()
+    ->paginate($perPage);
+}
+
+// ✅ GOOD - Eager Loading (prevent N+1)
+public function getOrdersWithItems(): Collection {
+  return Order::with(['items.menu', 'user', 'payment'])->get();
 }
 ```
 
 ### **9. Security Checklist**
 
-- [ ] Input validation dengan Zod
-- [ ] SQL Injection prevention (gunakan Prisma ORM)
-- [ ] XSS prevention (sanitize user input)
-- [ ] CSRF protection
-- [ ] Rate limiting pada authentication endpoints
-- [ ] Password hashing dengan bcrypt (min cost factor 12)
-- [ ] JWT dengan expiry time (access token: 15min, refresh token: 7 days)
+- [ ] Input validation dengan Laravel Form Request
+- [ ] SQL Injection prevention (gunakan Eloquent ORM)
+- [ ] XSS prevention (sanitize user input dengan Laravel purifier)
+- [ ] CSRF protection (Laravel built-in)
+- [ ] Rate limiting pada authentication endpoints (Laravel Throttle)
+- [ ] Password hashing dengan bcrypt/argon2 (Laravel Hash facade)
+- [ ] Laravel Sanctum token dengan expiry time
 - [ ] HTTPS only di production
-- [ ] Environment variables untuk secrets
+- [ ] Environment variables untuk secrets (.env file)
 
 ### **10. Code Review Checklist**
 
@@ -397,7 +440,7 @@ DELETE /api/v1/menus/:id      # Delete menu
 
 1. **NEVER mark task as done without Author approval**
 2. **ALWAYS follow SOLID principles**
-3. **NO `any` type in TypeScript**
+3. **ALWAYS use strict types in PHP** (`declare(strict_types=1)`)
 4. **ALWAYS read PRD and Plan before coding**
 5. **Write tests for every feature**
 6. **Mobile-first responsive design**

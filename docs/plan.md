@@ -20,22 +20,22 @@ Dokumen ini berisi rencana pengembangan lengkap untuk website Indo Cafe berdasar
 - **Routing:** React Router v6
 
 ### **Backend**
-- **Framework:** Node.js dengan Express.js
-- **Language:** TypeScript
-- **ORM:** Prisma
-- **Authentication:** JWT + bcrypt
-- **Validation:** Zod
-- **File Upload:** Multer + Sharp (image optimization)
+- **Framework:** Laravel 11
+- **Language:** PHP 8.2+
+- **ORM:** Eloquent ORM
+- **Authentication:** Laravel Sanctum (API Token)
+- **Validation:** Laravel Form Request
+- **File Upload:** Laravel Storage + Intervention Image (image optimization)
 
 ### **Database**
-- **Primary DB:** PostgreSQL 15+
+- **Primary DB:** MySQL 8.0+ (Laragon default) / PostgreSQL 15+
 - **Caching:** Redis (untuk session dan rate limiting)
 
 ### **Infrastructure**
-- **Hosting:** DigitalOcean / VPS
+- **Hosting:** VPS (DigitalOcean / Vultr) atau Shared Hosting
 - **CI/CD:** GitHub Actions
-- **Storage:** Local storage atau S3-compatible (future)
-- **Monitoring:** PM2 + Custom logging
+- **Storage:** Laravel Storage (local/S3-compatible)
+- **Monitoring:** Laravel Telescope + Laravel Log
 
 ### **Third-Party Services**
 - **Payment Gateway:** Midtrans
@@ -49,34 +49,60 @@ Dokumen ini berisi rencana pengembangan lengkap untuk website Indo Cafe berdasar
 ```
 indo_cafe/
 ├── backend/
-│   ├── src/
-│   │   ├── config/          # Configuration files (database, env)
-│   │   ├── modules/         # Feature modules
-│   │   │   ├── auth/
-│   │   │   │   ├── auth.controller.ts
-│   │   │   │   ├── auth.service.ts
-│   │   │   │   ├── auth.repository.ts
-│   │   │   │   ├── auth.routes.ts
-│   │   │   │   ├── auth.validation.ts
-│   │   │   │   └── auth.types.ts
-│   │   │   ├── users/
-│   │   │   ├── menu/
-│   │   │   ├── orders/
-│   │   │   ├── payments/
-│   │   │   ├── promotions/
-│   │   │   ├── reviews/
-│   │   │   └── reports/
-│   │   ├── common/          # Shared utilities
-│   │   │   ├── middleware/
-│   │   │   ├── utils/
-│   │   │   ├── interfaces/
-│   │   │   └── constants/
-│   │   ├── database/        # Prisma schema, migrations
-│   │   └── app.ts           # Main application
+│   ├── app/
+│   │   ├── Http/
+│   │   │   ├── Controllers/
+│   │   │   │   ├── Api/
+│   │   │   │   │   ├── Auth/
+│   │   │   │   │   │   ├── LoginController.php
+│   │   │   │   │   │   ├── RegisterController.php
+│   │   │   │   │   │   └── LogoutController.php
+│   │   │   │   │   ├── Menu/
+│   │   │   │   │   │   ├── MenuController.php
+│   │   │   │   │   │   └── CategoryController.php
+│   │   │   │   │   ├── Order/
+│   │   │   │   │   ├── Payment/
+│   │   │   │   │   ├── Profile/
+│   │   │   │   │   └── Admin/
+│   │   │   ├── Requests/     # Form Request Validation
+│   │   │   │   ├── Auth/
+│   │   │   │   ├── Menu/
+│   │   │   │   └── Order/
+│   │   │   ├── Resources/    # API Resources (Transformers)
+│   │   │   │   ├── MenuResource.php
+│   │   │   │   ├── OrderResource.php
+│   │   │   │   └── UserResource.php
+│   │   │   └── Middleware/
+│   │   ├── Models/           # Eloquent Models
+│   │   │   ├── User.php
+│   │   │   ├── Menu.php
+│   │   │   ├── Order.php
+│   │   │   ├── Payment.php
+│   │   │   └── Review.php
+│   │   ├── Services/         # Business Logic Layer
+│   │   │   ├── Auth/
+│   │   │   │   └── AuthService.php
+│   │   │   ├── Menu/
+│   │   │   │   └── MenuService.php
+│   │   │   ├── Order/
+│   │   │   │   └── OrderService.php
+│   │   │   └── Payment/
+│   │   │       └── PaymentService.php
+│   │   ├── Repositories/     # Data Access Layer (Optional)
+│   │   │   ├── MenuRepository.php
+│   │   │   └── OrderRepository.php
+│   │   └── Traits/           # Reusable traits
+│   ├── database/
+│   │   ├── migrations/
+│   │   ├── seeders/
+│   │   └── factories/
+│   ├── routes/
+│   │   ├── api.php
+│   │   └── web.php
+│   ├── config/
 │   ├── tests/
-│   ├── prisma/
-│   ├── package.json
-│   └── tsconfig.json
+│   ├── composer.json
+│   └── .env.example
 ├── frontend/
 │   ├── src/
 │   │   ├── features/        # Feature-based modules
@@ -118,11 +144,11 @@ indo_cafe/
 
 **Tasks:**
 - IC-001: Initialize project repository dengan Git
-- IC-002: Setup backend struktur folder (SOLID principles)
+- IC-002: Setup Laravel 11 project dengan composer
 - IC-003: Setup frontend dengan Vite + React + TypeScript
-- IC-004: Konfigurasi ESLint, Prettier, TypeScript
-- IC-005: Setup Prisma dengan PostgreSQL
-- IC-006: Setup environment variables (.env template)
+- IC-004: Konfigurasi ESLint, Prettier untuk frontend
+- IC-005: Setup database connection (MySQL di Laragon)
+- IC-006: Setup environment variables (.env untuk Laravel & Frontend)
 - IC-007: Buat README.md dengan panduan setup development
 
 ---
@@ -131,15 +157,15 @@ indo_cafe/
 **Branch:** `feature/auth-system`
 
 **Backend Tasks:**
-- IC-101: Design database schema untuk users dan roles
-- IC-102: Implement Prisma models (User, Role, Session)
-- IC-103: Create auth middleware (JWT verification)
-- IC-104: Implement register endpoint dengan validation
-- IC-105: Implement login endpoint dengan password hashing
-- IC-106: Implement logout endpoint
-- IC-107: Implement refresh token mechanism
-- IC-108: Implement role-based access control (RBAC)
-- IC-109: Create password reset flow (email token)
+- IC-101: Design database schema untuk users dan roles (migration)
+- IC-102: Create Eloquent models (User, Role, Permission)
+- IC-103: Setup Laravel Sanctum untuk API authentication
+- IC-104: Implement register endpoint dengan Form Request validation
+- IC-105: Implement login endpoint dengan Sanctum token
+- IC-106: Implement logout endpoint (revoke token)
+- IC-107: Implement token refresh mechanism
+- IC-108: Implement role-based access control dengan Spatie Permission
+- IC-109: Create password reset flow dengan Laravel notification
 
 **Frontend Tasks:**
 - IC-111: Create auth slice (Redux)
