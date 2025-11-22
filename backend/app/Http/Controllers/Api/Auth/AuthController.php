@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Services\Auth\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -155,5 +157,61 @@ class AuthController extends Controller
             'success' => true,
             'data' => new UserResource($request->user()->load('roles')),
         ]);
+    }
+
+    /**
+     * Send password reset link
+     *
+     * @param ForgotPasswordRequest $request
+     * @return JsonResponse
+     */
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    {
+        try {
+            $token = $this->authService->sendPasswordResetLink(
+                $request->input('email')
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password reset link sent to your email',
+                // TODO: Remove token from response in production
+                'reset_token' => $token, // Development only
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Reset password with token
+     *
+     * @param ResetPasswordRequest $request
+     * @return JsonResponse
+     */
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        try {
+            $this->authService->resetPassword(
+                $request->input('email'),
+                $request->input('token'),
+                $request->input('password')
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password has been reset successfully',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
+        }
     }
 }
