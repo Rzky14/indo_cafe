@@ -22,7 +22,7 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'status_display' => $this->getStatusDisplay(),
             'total_price' => (float) $this->total_price,
-            'total_price_formatted' => 'Rp ' . number_format($this->total_price, 0, ',', '.'),
+            'total_price_formatted' => 'Rp ' . number_format((float) $this->total_price, 0, ',', '.'),
             'payment_status' => $this->payment_status,
             'payment_status_display' => $this->getPaymentStatusDisplay(),
             'notes' => $this->notes,

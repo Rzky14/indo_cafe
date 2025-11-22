@@ -20,9 +20,9 @@ class OrderItemResource extends JsonResource
             'id' => $this->id,
             'quantity' => $this->quantity,
             'price' => (float) $this->price,
-            'price_formatted' => 'Rp ' . number_format($this->price, 0, ',', '.'),
+            'price_formatted' => 'Rp ' . number_format((float) $this->price, 0, ',', '.'),
             'subtotal' => (float) $this->subtotal,
-            'subtotal_formatted' => 'Rp ' . number_format($this->subtotal, 0, ',', '.'),
+            'subtotal_formatted' => 'Rp ' . number_format((float) $this->subtotal, 0, ',', '.'),
             'notes' => $this->notes,
             'menu_item' => $this->when($this->relationLoaded('menuItem'), function () {
                 return [

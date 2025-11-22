@@ -25,8 +25,14 @@ class OrderTest extends TestCase
         parent::setUp();
 
         // Create roles
-        $customerRole = Role::create(['name' => 'customer']);
-        $adminRole = Role::create(['name' => 'admin']);
+        $customerRole = Role::create([
+            'name' => 'customer',
+            'display_name' => 'Customer',
+        ]);
+        $adminRole = Role::create([
+            'name' => 'admin',
+            'display_name' => 'Admin',
+        ]);
 
         // Create users
         $this->customer = User::factory()->create();
