@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Menu\MenuController;
+use App\Http\Controllers\Api\Order\OrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,8 +50,17 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // Admin & Cashier routes
     Route::middleware('role:admin,cashier')->group(function () {
-        // Shared routes for admin and cashier (orders, payments, etc)
+        // Order management (admin & cashier can update status and payment)
+        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::put('/orders/{id}/payment-status', [OrderController::class, 'updatePaymentStatus']);
     });
+
+    // Authenticated user routes (all roles can access)
+    // Orders - customers see only their orders, admin/cashier see all
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::put('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
     // Customer only routes
     Route::middleware('role:customer')->group(function () {
