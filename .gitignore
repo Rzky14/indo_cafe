@@ -2,6 +2,7 @@
 node_modules/
 .pnp
 .pnp.js
+vendor/
 
 # Testing
 coverage/
@@ -19,6 +20,8 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.backup
+.env.production
 
 # IDE
 .vscode/
@@ -43,6 +46,13 @@ yarn-error.log*
 # Uploads
 uploads/
 public/uploads/
+backend/storage/*.key
+backend/storage/app/*
+backend/storage/framework/*
+backend/storage/logs/*
+!backend/storage/app/.gitignore
+!backend/storage/framework/.gitignore
+!backend/storage/logs/.gitignore
 
 # Database
 *.sqlite
