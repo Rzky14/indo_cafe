@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Menu\MenuController;
 use App\Http\Controllers\Api\Order\OrderController;
+use App\Http\Controllers\Api\Cart\CartController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -61,6 +62,14 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::put('/orders/{id}/cancel', [OrderController::class, 'cancel']);
+
+    // Cart routes (authenticated users)
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/cart/{id}', [CartController::class, 'update']);
+    Route::delete('/cart/{id}', [CartController::class, 'destroy']);
+    Route::delete('/cart', [CartController::class, 'clear']);
+    Route::post('/cart/validate-stock', [CartController::class, 'validateStock']);
 
     // Customer only routes
     Route::middleware('role:customer')->group(function () {
