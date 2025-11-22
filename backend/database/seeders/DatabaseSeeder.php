@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         // Seed roles first (required for user role assignments)
         $this->call([
             RoleSeeder::class,
+            MenuItemSeeder::class,
         ]);
     }
 }

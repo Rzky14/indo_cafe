@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Menu\MenuController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,6 +25,11 @@ Route::prefix('v1')->group(function () {
     // Password reset routes
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+    // Public menu routes (view only)
+    Route::get('/menu', [MenuController::class, 'index']);
+    Route::get('/menu/{id}', [MenuController::class, 'show']);
+    Route::get('/menu/category/{category}', [MenuController::class, 'byCategory']);
 });
 
 // Protected routes (require Sanctum authentication)
@@ -35,7 +41,10 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // Admin only routes
     Route::middleware('role:admin')->group(function () {
-        // Admin routes will be added here (user management, reports, etc)
+        // Menu management (admin only)
+        Route::post('/menu', [MenuController::class, 'store']);
+        Route::put('/menu/{id}', [MenuController::class, 'update']);
+        Route::delete('/menu/{id}', [MenuController::class, 'destroy']);
     });
 
     // Admin & Cashier routes
